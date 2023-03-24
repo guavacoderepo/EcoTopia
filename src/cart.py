@@ -5,7 +5,6 @@ from controllers.transactions import handleFindToken,handleUpdateBalnce, handleN
 
 from src.constants.http_status_code import HTTP_400_BAD_REQUEST
 from src.modules.mongodb import mongo
-from datetime import datetime
 from bson import ObjectId
 
 cart = Blueprint("cart",__name__,url_prefix="/api/v1/cart")
@@ -82,9 +81,6 @@ def add_cart():
         message = "The method is not allowed for the requested URL."    
 
     return jsonify({"status":status,"message":message,"data":data})
-
-
-
 
 
 
@@ -204,7 +200,7 @@ def payment():
             handleUpdateCart([])
 
             # add transaction to users transaction
-            newtransacton = handleNewTransaction(user,price,token)
+            newtransacton = handleNewTransaction(user,price,token,"bank")
 
             # get user transactions
             transactions = user_data["Transactions"]
@@ -230,8 +226,7 @@ def payment():
 
 @cart.route("/delete/", methods = ["POST"])
 def delete_cart():
-     # db instance
-    db = mongo.EcoTopia
+
 
     # initialize return data
     data = {}
@@ -240,10 +235,10 @@ def delete_cart():
 
     if request.method == "POST":
         # get post data from json
-        user_address = request.json.get("Address","")
+        user = request.json.get("Username", "")
         itemid = request.json.get("Item_id","")
 
-        user_address = user_address.strip()
+        user = user.strip()
         itemid = itemid.strip()
 
 
@@ -254,9 +249,10 @@ def delete_cart():
     
 
         # check if user exit
-        user_data = db.users.find_one({"Address":user_address})
+        user_data = handleFindUser(user)
+
         if user_data is None:
-            message = "invalid address... check address"
+            message = "invalid user... check user"
             return jsonify({"status":status, "message":message, "data":data}), HTTP_400_BAD_REQUEST
 
 
@@ -272,10 +268,9 @@ def delete_cart():
                 break
         try:
             # update new balance and empty cart
-            db.users.update_one({"Address":user_address}, {"$set":{"Cart":cartlist}})
+            handleUpdateCart(cartlist)
 
 # to be looked into 
-
 
             # return redirect(url_for(checkout("Address"=user_address)))
 

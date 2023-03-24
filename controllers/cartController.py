@@ -5,7 +5,7 @@ from src.modules.mongodb import mongo
 db = mongo.EcoTopia
 
 def handleUpdateCart(user,cartlist):
-    db.users.update_one({"Username":user}, {"$set":{"Cart":cartlist}})
+    return db.users.update_one({"Username":user}, {"$set":{"Cart":cartlist}})
 
 
 def handleFindItem(itemid):

@@ -1,15 +1,12 @@
-from flask import Flask, Blueprint, request, jsonify
-from src.modules.mongodb import mongo
-from datetime import datetime
+from flask import Blueprint, request, jsonify
+from controllers.transactions import handleFindToken, handleUpdateBalnce, handleNewTransaction, handleUpdateTranscation
+from controllers.usersController import handleFindUser
 
 
 payment = Blueprint("payment", __name__, url_prefix="/api/v1/payment")
 
 @payment.route("/checkout/", methods = ["POST", "GET"])
 def checkout():
-     # init db 
-    db = mongo.EcoTopia
-
     # initialize return data
     data = {}
     status = False
@@ -21,11 +18,11 @@ def checkout():
         amount = request.json.get("Amount", 0)
         name = request.json.get("Name", "")
         token = request.json.get("Token", "")
-        address = request.json.get("Address", "")
+        user = request.json.get("Username", "")
 
 
          # check if token already exit
-        duplicate = db.transactions.find_one({"Token":token})
+        duplicate = handleFindToken(token)
         if duplicate is not  None:
             message = "duplicate transaction"
             return jsonify({"status":status,"message":message,"data":data})
@@ -41,14 +38,15 @@ def checkout():
             return jsonify({"status":status,"message":message,"data":data})
 
         # check address
-        if address == "":
+        if user == "":
             message = "empty address"
             return jsonify({"status":status,"message":message,"data":data})
 
         # check if address exit
-        user = db.users.find_one({"Address":address})
+        user = handleFindUser(user)
+
         if user is None:
-            message = "invalid address"
+            message = "invalid user"
             return jsonify({"status":status,"message":message,"data":data})
         
         balance = user["Balance"]
@@ -64,9 +62,10 @@ def checkout():
             newBalance = balance - amount
             
             # update balance in users
-            db.users.update_one({"Address": address}, {"$set": {"Balance": newBalance }})
+            handleUpdateBalnce(user,newBalance)
+
             # add to transactions
-            newtransacton = db.transactions.insert_one({"sender":user["Address"],"To":bank,"Amount":amount,"Token":token,"created_at":datetime.now()})
+            newtransacton = handleNewTransaction(user, amount, token, bank)
             
             # get user transactions
             transactions = user["Transactions"]
@@ -75,11 +74,12 @@ def checkout():
             transactions.append(newtransacton.inserted_id)
             
             # update transactons
-            db.users.update_one({"Address":address},{"$set":{"Transactions":transactions},})
+            handleUpdateTranscation(user,transactions)
             
             # set returen param
-            data = {"Amout":amount,"To":bank,"Sender":user["Address"],"Transaction-id":str(newtransacton.inserted_id)}
+            data = {"Amout":amount, "To":bank, "Sender":user["Address"], "Transaction-id":str(newtransacton.inserted_id)}
             status = True
+
         except:
             message = "an error occured.... please try again"
        

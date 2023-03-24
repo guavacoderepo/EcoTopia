@@ -6,7 +6,7 @@ db = mongo.EcoTopia
 
 def handleNewUser(name,email,phone,username,token, hash_pwd):
     # return new user date
-    db.users.insert_one({"Name":name,
+    return db.users.insert_one({"Name":name,
                             "Email":email,
                             "Phone":phone,
                             "Username":username,
@@ -20,9 +20,8 @@ def handleNewUser(name,email,phone,username,token, hash_pwd):
                         })
     
 
-def handleUpdateUser():
-     # init
-    db = mongo.EcoTopia
+def handleFetchUser(user):
+    return db.users.find_one({"Username": user})
 
 
 

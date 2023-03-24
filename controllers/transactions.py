@@ -11,16 +11,16 @@ def handleFindToken(token):
 
 
 def handleUpdateBalnce(user,balance):
-    db.users.update_one({"Username": user}, {
+    return db.users.update_one({"Username": user}, {
                         "$set": {"Balance": balance}})
 
 
-def handleNewTransaction(user, price, token):
-    return db.transactions.insert_one({"sender":user,"To":"Store","Amount":price,"Token":token,"created_at":datetime.now()})
+def handleNewTransaction(user, price, token, to):
+    return db.transactions.insert_one({"sender":user,"To":to,"Amount":price,"Token":token,"created_at":datetime.now()})
 
 
 def handleUpdateTranscation(user, transactions):
-    db.users.update_one({"Username": user}, {
+    return db.users.update_one({"Username": user}, {
                         "$set": {"Transactions": transactions}, })
 
 

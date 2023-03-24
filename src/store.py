@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from datetime import datetime
+from controllers.storeController import handleNewStoreItem, handleFetchStoreItems
 from src.modules.mongodb import mongo
 
 
@@ -8,9 +8,6 @@ store =  Blueprint("store", __name__, url_prefix="/api/v1/store")
 
 @store.route("/products/", methods =["POST","GET"])
 def products():
-
-    # init db 
-    db = mongo.EcoTopia
 
     # initialize return data
     data = {}
@@ -27,7 +24,6 @@ def products():
         price = request.json.get("Price","")
         quantity = request.json.get("Quantity","")
         img_url = request.json.get("ImgUrl","")
-        date = datetime.now()
 
         # strip slashes
         description = description.strip()
@@ -57,9 +53,9 @@ def products():
         
         try:
 
-            db.store.insert_one({"Description":description, "Category":category,"Title":title, "Price":price, "Quantity": quantity, "ImgUrl":img_url,"Created_at":date})
+            handleNewStoreItem(description, category, title, price,quantity,img_url)
 
-            data = {"Description":description, "Category":category, "Price":price, "Title":title, "Quantity": quantity, "ImgUrl":img_url,"Created_at":date}
+            data = {"Description":description, "Category":category, "Price":price, "Title":title, "Quantity": quantity, "ImgUrl":img_url}
 
             status = True
         except:
@@ -70,7 +66,7 @@ def products():
         # get db items
         page = request.args.get("page", 1, type=int)
         per_page = request.args.get("per_page",10,type=int)
-        items = db.store.find()
+        items = handleFetchStoreItems
         data = []
         for item in items:
             itemdata = {"Id": str(item["_id"]), "Description":item["Description"], "Category":item["Category"], "Price":item["Price"], "Title":item["Title"], "Quantity": item["Quantity"], "ImgUrl":item["ImgUrl"],"Created_at":item["Created_at"]}

@@ -1,6 +1,6 @@
 from flask import jsonify, request, Blueprint
-from src.modules.mongodb import mongo
-from datetime import datetime
+from controllers.transactions import handleFindToken,handleNewTransaction, handleUpdateBalnce,handleUpdateTranscation
+from controllers.usersController import handleFindUser
 
 transaction = Blueprint("transactions", __name__, url_prefix="/api/v1/transactions")
 
@@ -10,9 +10,6 @@ transaction = Blueprint("transactions", __name__, url_prefix="/api/v1/transactio
 # fundind a wallet
 @transaction.route("send/coin", methods=["POST","GET"])
 def send_coin():
-
-    # init db 
-    db = mongo.EcoTopia
 
     # initialize return data
     data = {}
@@ -25,7 +22,6 @@ def send_coin():
         to = request.json.get("To","")
         amount = request.json.get("Amount","")
         token = request.json.get("Token","")
-        created_at = datetime.now()
 
         # strip white spaces
         sender = sender.strip()
@@ -34,13 +30,14 @@ def send_coin():
 
         
         # check if a duplicate transaction
-        chk_transaction = db.transactions.find_one({"Token":token})
+        chk_transaction = handleFindToken(token)
+
         if chk_transaction is not None:
             message = "Duplicate transation"
             return jsonify({"status":status, "message":message, "data":data})
         
         # check if username exit 
-        validate_user = db.users.find_one({"Username":to})
+        validate_user = handleFindUser(to)
         if validate_user is None:
             message = "check username.... incorrect username"
             return jsonify({"status":status, "message":message, "data":data})
@@ -63,11 +60,11 @@ def send_coin():
         # add to receiver wallet
         try:
             # get wallet 
-            to_wallet = db.users.find_one({"Address":to})
+            to_wallet = handleFindUser(to)
             # add coin to the wallet balance
             newbal = to_wallet["Balance"]+amount
             # create a transaction
-            newtransacton = db.transactions.insert_one({"sender":sender,"To":to,"Amount":amount,"Token":token,"created_at":created_at})
+            newtransacton = handleNewTransaction(sender,amount,token,to)
 
             # get user transactions
             transactions = to_wallet["Transactions"]
@@ -76,8 +73,8 @@ def send_coin():
             
             # update new balance
     # ===========================================
-            db.users.update_one({"Address":to},{"$set":{"Balance":newbal}})
-            db.users.update_one({"Address":to},{"$set":{"Transactions":transactions},})
+            handleUpdateBalnce(to,newbal)
+            handleUpdateTranscation(to,transactions)
     # ===========================================
             data = {"Amout":amount,"To":to,"Sender":sender,"Transaction-id":str(newtransacton.inserted_id)}
             status = True
