@@ -1,7 +1,8 @@
 from flask import Blueprint, request, jsonify
 from controllers.usersController import handleFindUser
 from controllers.cartController import handleUpdateCart, handleFindItem
-from controllers.transactions import handleFindToken
+from controllers.transactions import handleFindToken,handleUpdateBalnce, handleNewTransaction, handleUpdateTranscation
+
 from src.constants.http_status_code import HTTP_400_BAD_REQUEST
 from src.modules.mongodb import mongo
 from datetime import datetime
@@ -194,22 +195,16 @@ def payment():
         # and transactions 
 
 
-
-
-
 # update product quantity
-
-
-
 
 
         try:
             # update new balance and empty cart
-            db.users.update_one({"Address":user_address}, {"$set":{"Balance":newbalance}})
-            db.users.update_one({"Address":user_address}, {"$set":{"Cart":[]}})
+            handleUpdateBalnce(user, newbalance)
+            handleUpdateCart([])
 
             # add transaction to users transaction
-            newtransacton = db.transactions.insert_one({"sender":user_address,"To":"Store","Amount":price,"Token":token,"created_at":datetime.now()})
+            newtransacton = handleNewTransaction(user,price,token)
 
             # get user transactions
             transactions = user_data["Transactions"]
@@ -218,10 +213,10 @@ def payment():
             
             # update transactions
     # ===========================================
-            db.users.update_one({"Address":user_address},{"$set":{"Transactions":transactions},})
+            handleUpdateTranscation(user,transactions)
 
             status = True
-            data = {"Amout":price,"To":user_address,"Sender":"Store","Transaction-id":str(newtransacton.inserted_id)}
+            data = {"Amout":price,"To":user,"Sender":"Store","Transaction-id":str(newtransacton.inserted_id)}
 
         except:
             message = "an error was encountered, please try again"
