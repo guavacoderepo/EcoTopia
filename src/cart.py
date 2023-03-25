@@ -4,7 +4,6 @@ from controllers.cartController import handleUpdateCart, handleFindItem
 from controllers.transactions import handleFindToken,handleUpdateBalnce, handleNewTransaction, handleUpdateTranscation
 
 from src.constants.http_status_code import HTTP_400_BAD_REQUEST
-from src.modules.mongodb import mongo
 from bson import ObjectId
 
 cart = Blueprint("cart",__name__,url_prefix="/api/v1/cart")

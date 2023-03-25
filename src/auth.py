@@ -1,7 +1,6 @@
 from controllers.usersController import handleNewUser,handleFindEmail, handleFindUser
 from flask import request, Blueprint, jsonify
 from werkzeug.security import check_password_hash, generate_password_hash
-from src.modules.mongodb import mongo
 from src.constants.http_status_code import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_406_NOT_ACCEPTABLE,HTTP_405_METHOD_NOT_ALLOWED
 import validators
 import string 

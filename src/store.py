@@ -1,6 +1,5 @@
 from flask import Blueprint, jsonify, request
 from controllers.storeController import handleNewStoreItem, handleFetchStoreItems
-from src.modules.mongodb import mongo
 
 
 store =  Blueprint("store", __name__, url_prefix="/api/v1/store")
