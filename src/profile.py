@@ -1,11 +1,11 @@
 from flask import request, Blueprint, jsonify
-from src.constants.http_status_code import HTTP_200_OK, HTTP_400_BAD_REQUEST 
+from src.constants.http_status_code import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from controllers.usersController import handleFetchUser
 
-profile =  Blueprint("profile",__name__,url_prefix="/api/v1/profile")
+profile = Blueprint("profile", __name__, url_prefix="/api/v1/profile")
 
 
-@profile.route("/",methods = ["POST", "GET"])
+@profile.route("/", methods=["POST"])
 def users():
     # init methods
     message = ""
@@ -13,18 +13,21 @@ def users():
     status = False
 
     if request.method == "POST":
-        user = request.json.get("Username","")
+        user = request.json.get("Username", "")
 
         if user == "":
             message = "empty username"
-            return jsonify({"status":status, "message":message, "data":data }),HTTP_400_BAD_REQUEST
+            return jsonify({"status": status, "message": message, "data": data}), HTTP_400_BAD_REQUEST
 
         # fetch all users
         user = handleFetchUser(user)
+        try:
+            # get user data
+            data = {"Name": user["Name"], "Email": user["Email"], "Phone": user["Phone"], "Username": user["Username"], "Address": user["Address"], "_id": str(
+                user["_id"]), "Cart": user["Cart"], "Balance": user["Balance"], "lastScan": user["LastScan"]}
+            status = True
+        except:
+            message = "Error getting user profile"
+            return jsonify({"status": status, "message": message, "data": data}), HTTP_400_BAD_REQUEST
 
-        # get user data
-        data = {"Name":user["Name"],"Email":user["Email"],"Phone":user["Phone"],"Username":user["Username"], "Address":user["Address"], "_id":str(user["_id"]), "Cart":user["Cart"],"Balance":user["Balance"]}
-        status = True
-       
-    
-    return jsonify({"status":status, "message":"", "data":data }),HTTP_200_OK
+    return jsonify({"status": status, "message": "", "data": data}), HTTP_200_OK
