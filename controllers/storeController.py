@@ -2,7 +2,7 @@ from src.modules.mongodb import mongo
 from datetime import datetime
 
 # init
-db = mongo.EcoTopia
+db = mongo
 
 
 def handleNewStoreItem(description, category, title, price, quantity, img_url):

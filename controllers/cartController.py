@@ -2,7 +2,7 @@ from src.modules.mongodb import mongo
 
 
 # init
-db = mongo.EcoTopia
+db = mongo
 
 def handleUpdateCart(user,cartlist):
     return db.users.update_one({"Username":user}, {"$set":{"Cart":cartlist}})

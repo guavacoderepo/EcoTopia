@@ -3,7 +3,7 @@ from datetime import datetime
 
 
 # init
-db = mongo.EcoTopia
+db = mongo
 
 
 def handleFindToken(token):

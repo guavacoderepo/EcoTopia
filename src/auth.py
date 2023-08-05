@@ -59,11 +59,11 @@ def create_user():
         if username == "":
             message = "Empty username field"
             return jsonify({"status": status, "message": message, "data": data}), HTTP_400_BAD_REQUEST
-         # check if password is empty
+        # check if password is empty
         if pwd == "":
             message = "empty password field"
             return jsonify({"status": status, "message": message, "data": data}), HTTP_400_BAD_REQUEST
-         # check if email is empty
+        # check if email is empty
         if email == "":
             message = "empty email field"
             return jsonify({"status": status, "message": message, "data": data}), HTTP_400_BAD_REQUEST
