@@ -29,10 +29,8 @@ def handleFetchUser(username):
 def handleFindUser(username):
     return db.users.find_one({"Username": username})
 
-
 def handleFindEmail(email):
     return db.users.find_one({"Email": email})
-
 
 def handleUpdateuUser(user, coin):
     return db.users.update_one({"Username": user}, {
