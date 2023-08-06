@@ -1,7 +1,8 @@
-from controllers.usersController import handleNewUser, handleFindEmail, handleFindUser
+from controllers.usersController import handleNewUser, handleFindEmail, handleFindUser, handleFetchUser
 from flask import request, Blueprint, jsonify
 from werkzeug.security import check_password_hash, generate_password_hash
 from src.constants.http_status_code import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_406_NOT_ACCEPTABLE, HTTP_405_METHOD_NOT_ALLOWED
+from flask_jwt_extended import create_access_token
 import validators
 import string
 import random
@@ -77,9 +78,9 @@ def create_user():
             message = "invalid email address"
             return jsonify({"status": status, "message": message, "data": data}), HTTP_400_BAD_REQUEST
         # check if valid phone number
-        if len(phone) != 11:
-            message = "invalid phone number"
-            return jsonify({"status": status, "message": message, "data": data}), HTTP_400_BAD_REQUEST
+        # if len(phone) != 11:
+        #     message = "invalid phone number"
+        #     return jsonify({"status": status, "message": message, "data": data}), HTTP_400_BAD_REQUEST
         # check username lenght
         if len(username) < 4:
             message = "username too short, must be greater than 4 characters"
@@ -95,11 +96,14 @@ def create_user():
 
         # validate email and username from db
         chk_email = handleFindEmail(email)
+
         if chk_email is not None:
             message = "email already exit"
             return jsonify({"status": status, "message": message, "data": data}), HTTP_406_NOT_ACCEPTABLE
 
+        # validate if username exit
         chk_email = handleFindUser(username)
+
         if chk_email is not None:
             message = "username already exit"
             return jsonify({"status": status, "message": message, "data": data}), HTTP_406_NOT_ACCEPTABLE
@@ -115,7 +119,7 @@ def create_user():
         # create data response
         data = {"Name": name, "Email": email, "Phone": phone, "Username": username,
                 "Balance": 2.0, "Address": user_token, "Transactions": [], "Cart": []}
-        
+
         # set status to true
         status = True
 
@@ -169,6 +173,7 @@ def login_user():
 
         # confirm password
         chk_pwd = check_password_hash(password=pwd, pwhash=user["Password"])
+
         if not chk_pwd:
             message = "Incorrect password"
             return jsonify({"status": status, "message": message, "data": data}), HTTP_406_NOT_ACCEPTABLE
@@ -176,6 +181,43 @@ def login_user():
         # return data
         data = {"Address": user["Address"], "Name": user["Name"], "Email": user["Email"],
                 "Phone": user["Phone"], "Username": user["Username"], "LastScan": user["LastScan"]}
+
+        status = True
+
+    else:
+        message = "The method is not allowed for the requested URL."
+        return jsonify({"status": status, "message": message, "data": data}), HTTP_405_METHOD_NOT_ALLOWED
+
+    return jsonify({"status": status, "message": message, "data": data}), HTTP_200_OK
+
+
+# me route
+@auth.route("/me", methods=["POST"])
+def login_user():
+
+    # initialize return data
+    data = {}
+    status = False
+    message = ""
+
+    if request.method == "POST":
+
+        # get json post request
+        username = request.json.get("Username", "")
+
+        username = username.strip()
+
+        user = handleFetchUser(username)
+
+        # user doesnt exit
+        if user is None:
+            message = "user doesn't exit, username is case sensitive"
+            return jsonify({"status": status, "message": message, "data": data}), HTTP_406_NOT_ACCEPTABLE
+
+        # return data
+        data = {"Address": user["Address"], "Name": user["Name"], "Email": user["Email"],
+                "Phone": user["Phone"], "Username": user["Username"], "LastScan": user["LastScan"]}
+
         status = True
 
     else:

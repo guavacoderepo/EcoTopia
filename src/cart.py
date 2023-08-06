@@ -135,8 +135,6 @@ def checkout():
 
 
 
-
-
 @cart.route("/payment/", methods = ["POST"])
 def payment():
 

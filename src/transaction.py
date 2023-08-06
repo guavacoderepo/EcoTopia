@@ -5,8 +5,6 @@ from controllers.usersController import handleFindUser
 transaction = Blueprint("transactions", __name__, url_prefix="/api/v1/transactions")
 
 
-
-
 # fundind a wallet
 @transaction.route("send/coin", methods=["POST","GET"])
 def send_coin():
