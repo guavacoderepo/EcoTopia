@@ -109,11 +109,13 @@ def create_user():
         user_token = generate_token()
 
         # call handle new user function
+
         handleNewUser(name, email, phone, username, user_token, hash_pwd)
 
         # create data response
         data = {"Name": name, "Email": email, "Phone": phone, "Username": username,
-                "Balance": 0.0, "Address": user_token, "Transactions": [], "Cart": []}
+                "Balance": 2.0, "Address": user_token, "Transactions": [], "Cart": []}
+        
         # set status to true
         status = True
 
