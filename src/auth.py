@@ -193,7 +193,7 @@ def login_user():
 
 # me route
 @auth.route("/me", methods=["POST"])
-def login_user():
+def me():
 
     # initialize return data
     data = {}
