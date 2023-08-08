@@ -1,15 +1,15 @@
 from flask import Blueprint, request, jsonify
 from controllers.usersController import handleFindUser
 from controllers.cartController import handleUpdateCart, handleFindItem
-from controllers.transactions import handleFindToken,handleUpdateBalnce, handleNewTransaction, handleUpdateTranscation
+from controllers.transactions import handleFindToken, handleUpdateBalnce, handleNewTransaction, handleUpdateTranscation
 
 from src.constants.http_status_code import HTTP_400_BAD_REQUEST
 from bson import ObjectId
 
-cart = Blueprint("cart",__name__,url_prefix="/api/v1/cart")
+cart = Blueprint("cart", __name__, url_prefix="/api/v1/cart")
 
 
-@cart.route("/add/", methods = ["POST"])
+@cart.route("/add/", methods=["POST"])
 def add_cart():
 
     # initialize return data
@@ -19,17 +19,17 @@ def add_cart():
 
     if request.method == "POST":
         # get post data from json
-        user = request.json.get("Username","")
-        quantity = request.json.get("Quantity",0)
-        itemid = request.json.get("Item_id","")
+        user = request.json.get("Username", "")
+        quantity = request.json.get("Quantity", 0)
+        itemid = request.json.get("Item_id", "")
 
         # check if address exit
         chk_user = handleFindUser(user)
         # print(chk_user)
-        
+
         if chk_user is None:
             message = "invalid address... check address"
-            return jsonify({"status":status, "message":message, "data":data}), HTTP_400_BAD_REQUEST
+            return jsonify({"status": status, "message": message, "data": data}), HTTP_400_BAD_REQUEST
 
         # chck if item already in cart
         # 1) fetcch all items
@@ -50,25 +50,26 @@ def add_cart():
                     break
 
                  # update the new cart
-            
+
             else:
                 # append the new item to the cart
-                cartlist.append({"Item":itemid,"Qantity":quantity})      
+                cartlist.append({"Item": itemid, "Qantity": quantity})
         else:
             # append the new item to the cart
-            cartlist.append({"Item":itemid,"Qantity":quantity})
-                    
-        # upload change 
+            cartlist.append({"Item": itemid, "Qantity": quantity})
+
+        # upload change
         try:
-           
+
             # update users db cart
             handleUpdateCart(user, cartlist)
 
-            # refresh users 
+            # refresh users
             user = handleFindUser(user)
 
-            data = {"Address": user["Address"],"Cart":user["Cart"],"Name":user["Name"],"Email":user["Email"],"Phone":user["Phone"],"Username":user["Username"],"LastScan":user["LastScan"]}
-            status = True 
+            data = {"Address": user["Address"], "Cart": user["Cart"], "Name": user["Name"], "Email": user["Email"],
+                    "Phone": user["Phone"], "Username": user["Username"], "LastScan": user["LastScan"]}
+            status = True
 
             # return users data here
 
@@ -77,13 +78,12 @@ def add_cart():
             message = "an error was encountered and process terminated"
 
     else:
-        message = "The method is not allowed for the requested URL."    
+        message = "The method is not allowed for the requested URL."
 
-    return jsonify({"status":status,"message":message,"data":data})
+    return jsonify({"status": status, "message": message, "data": data})
 
 
-
-@cart.route("/checkout/", methods = ["POST"])
+@cart.route("/checkout/", methods=["POST"])
 def checkout():
 
     # initialize return data
@@ -92,10 +92,9 @@ def checkout():
     message = ""
     price = 0
 
-
     if request.method == "POST":
         # get post data from json
-        user = request.json.get("Username","")
+        user = request.json.get("Username", "")
         user = user.strip()
 
         # check if user exit
@@ -103,7 +102,7 @@ def checkout():
 
         if user_data is None:
             message = "invalid user... check user"
-            return jsonify({"status":status, "message":message, "data":data}), HTTP_400_BAD_REQUEST
+            return jsonify({"status": status, "message": message, "data": data}), HTTP_400_BAD_REQUEST
 
         # create empty list for the items
         items = []
@@ -112,30 +111,27 @@ def checkout():
             itemid = ObjectId(item["Item"])
             store_item = handleFindItem(itemid)
 
-            # add prices 
+            # add prices
             price += store_item["Price"] * item["Qantity"]
 
-            # get all item data and store in a dictionay 
-            itemdata = {"Id": str(store_item["_id"]), "Description":store_item["Description"], "Category":store_item["Category"], "Price":store_item["Price"] * item["Qantity"], "Title":store_item["Title"], "Quantity": item["Qantity"], "ImgUrl":store_item["ImgUrl"],"Created_at":store_item["Created_at"]}
+            # get all item data and store in a dictionay
+            itemdata = {"Id": str(store_item["_id"]), "Description": store_item["Description"], "Category": store_item["Category"], "Price": store_item["Price"]
+                        * item["Qantity"], "Title": store_item["Title"], "Quantity": item["Qantity"], "ImgUrl": store_item["ImgUrl"], "Created_at": store_item["Created_at"]}
             items.append(itemdata)
 
         data = items
         # print(data)
-        status =  True
-        
+        status = True
+
         # deducte the money and clear user's cart
-        
 
     else:
         message = "methode not allowed, check documentation"
 
-
-    return jsonify({"status":status,"price":price,"message":message,"data":data})
-
+    return jsonify({"status": status, "price": price, "message": message, "data": data})
 
 
-
-@cart.route("/payment/", methods = ["POST"])
+@cart.route("/payment/", methods=["POST"])
 def payment():
 
     # initialize return data
@@ -146,50 +142,47 @@ def payment():
 
     if request.method == "POST":
         # get post data from json
-        user = request.json.get("Username","")
-        token = request.json.get("Token","")
+        user = request.json.get("Username", "")
+        token = request.json.get("Token", "")
         user = user.strip()
 
         # print(token)
-
 
         # check if it's a duplicate transaction
         chk_transaction = handleFindToken(token)
         if chk_transaction is not None:
             message = "Duplicate transation"
-            return jsonify({"status":status, "message":message, "data":data}), HTTP_400_BAD_REQUEST
+            return jsonify({"status": status, "message": message, "data": data}), HTTP_400_BAD_REQUEST
 
         # check if user exit
         user_data = handleFindUser(user)
         if user_data is None:
             message = "invalid user... check user"
-            return jsonify({"status":status, "message":message, "data":data}), HTTP_400_BAD_REQUEST
+            return jsonify({"status": status, "message": message, "data": data}), HTTP_400_BAD_REQUEST
 
-        # gat all cart items 
+        # gat all cart items
         for item in user_data["Cart"]:
             itemid = ObjectId(item["Item"])
             store_item = handleFindItem(itemid)
 
-            # add prices 
+            # add prices
             price += store_item["Price"] * item["Qantity"]
-
 
         # check if user have enough money
         balace = user_data["Balance"]
 
         if balace < price:
             message = "insufficient balance"
-            return jsonify({"status":status,"message":message,"data":data})
-        
+            return jsonify({"status": status, "message": message, "data": data})
+
         # subtract price to get new balance
         newbalance = balace - price
 
         # update users data
-        # and transactions 
+        # and transactions
 
 
 # update product quantity
-
 
         try:
             # update new balance and empty cart
@@ -197,33 +190,29 @@ def payment():
             handleUpdateCart([])
 
             # add transaction to users transaction
-            newtransacton = handleNewTransaction(user,price,token,"bank")
+            newtransacton = handleNewTransaction(user, price, token, "bank")
 
             # get user transactions
             transactions = user_data["Transactions"]
             # add transaction to transactions list
             transactions.append(newtransacton.inserted_id)
-            
+
             # update transactions
     # ===========================================
-            handleUpdateTranscation(user,transactions)
+            handleUpdateTranscation(user, transactions)
 
             status = True
-            data = {"Amout":price,"To":user,"Sender":"Store","Transaction-id":str(newtransacton.inserted_id)}
+            data = {"Amout": price, "To": user, "Sender": "Store",
+                    "Transaction-id": str(newtransacton.inserted_id)}
 
         except:
             message = "an error was encountered, please try again"
 
-
-    return jsonify({"status":status,"price":price,"message":message,"data":data})
-
+    return jsonify({"status": status, "price": price, "message": message, "data": data})
 
 
-
-
-@cart.route("/delete/", methods = ["POST"])
+@cart.route("/delete/", methods=["POST"])
 def delete_cart():
-
 
     # initialize return data
     data = {}
@@ -233,27 +222,24 @@ def delete_cart():
     if request.method == "POST":
         # get post data from json
         user = request.json.get("Username", "")
-        itemid = request.json.get("Item_id","")
+        itemid = request.json.get("Item_id", "")
 
         user = user.strip()
         itemid = itemid.strip()
 
-
         # check if item id id empty
         if itemid == "":
             message = "empty item-id"
-            return jsonify({"status":status, "message":message, "data":data}), HTTP_400_BAD_REQUEST
-    
+            return jsonify({"status": status, "message": message, "data": data}), HTTP_400_BAD_REQUEST
 
         # check if user exit
         user_data = handleFindUser(user)
 
         if user_data is None:
             message = "invalid user... check user"
-            return jsonify({"status":status, "message":message, "data":data}), HTTP_400_BAD_REQUEST
+            return jsonify({"status": status, "message": message, "data": data}), HTTP_400_BAD_REQUEST
 
-
-        # get all cart items 
+        # get all cart items
         cartlist = user_data["Cart"]
 
         # iterate throught the items
@@ -265,9 +251,9 @@ def delete_cart():
                 break
         try:
             # update new balance and empty cart
-            handleUpdateCart(cartlist)
+            handleUpdateCart(user, cartlist)
 
-# to be looked into 
+# to be looked into
 
             # return redirect(url_for(checkout("Address"=user_address)))
 
@@ -276,10 +262,8 @@ def delete_cart():
             status = True
 
         except:
-            message = "an error was encountered, please reload" 
-
+            message = "an error was encountered, please reload"
 
         # print(cartlist)
 
-
-    return jsonify({"status":status,"message":message,"data":data})
+    return jsonify({"status": status, "message": message, "data": data})
