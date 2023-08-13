@@ -29,6 +29,7 @@ def handleFetchUser(username):
 
 # user find section
 
+
 def handleFindUser(username):
     return db.users.find_one({"Username": username})
 
@@ -41,6 +42,6 @@ def handleUpdateuUser(user, coin):
     return db.users.update_one({"Username": user}, {
         "$set": {
             "Balance": coin,
-            "LastScan": datetime.now(),
+            "lastScan": datetime.now(),
         },
     })
