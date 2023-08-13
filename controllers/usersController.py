@@ -42,6 +42,6 @@ def handleUpdateuUser(user, coin):
     return db.users.update_one({"Username": user}, {
         "$set": {
             "Balance": coin,
-            "lastScan": datetime.now(),
+            "LastScan": datetime.now(),
         },
     })
